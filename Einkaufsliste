@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einkaufsliste</title>
+
+<!-- Für iPhone App Gefühl -->
+<link rel="manifest" href="">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.app {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  width: 320px;
+}
+
+input, select {
+  padding: 8px;
+  margin: 5px 0;
+  width: 100%;
+}
+
+button {
+  padding: 8px;
+  width: 100%;
+  margin-top: 5px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.checked {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.category {
+  font-size: 12px;
+  color: #666;
+}
+
+.share {
+  margin-top: 10px;
+  background: #007aff;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <h3>🛒 Einkaufsliste</h3>
+
+  <input id="itemInput" placeholder="Produkt">
+  
+  <select id="categoryInput">
+    <option>Allgemein</option>
+    <option>Obst & Gemüse</option>
+    <option>Getränke</option>
+    <option>Drogerie</option>
+    <option>Fleisch</option>
+  </select>
+
+  <button onclick="addItem()">Hinzufügen</button>
+
+  <ul id="list"></ul>
+
+  <button class="share" onclick="shareList()">📤 Liste teilen</button>
+</div>
+
+<script>
+let items = JSON.parse(localStorage.getItem("shoppingList")) || [];
+
+function save() {
+  localStorage.setItem("shoppingList", JSON.stringify(items));
+}
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  items.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${item.text}
+      <div class="category">${item.category}</div>
+    `;
+
+    if (item.checked) li.classList.add("checked");
+
+    li.onclick = () => {
+      items[index].checked = !items[index].checked;
+      save();
+      render();
+    };
+
+    list.appendChild(li);
+  });
+}
+
+function addItem() {
+  const text = document.getElementById("itemInput").value;
+  const category = document.getElementById("categoryInput").value;
+
+  if (!text) return;
+
+  items.push({ text, category, checked: false });
+
+  save();
+  render();
+
+  document.getElementById("itemInput").value = "";
+}
+
+function shareList() {
+  const text = items.map(i => 
+    `${i.checked ? "✓" : "•"} ${i.text} (${i.category})`
+  ).join("\n");
+
+  if (navigator.share) {
+    navigator.share({
+      title: "Einkaufsliste",
+      text: text
+    });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert("Liste kopiert! Jetzt einfügen in WhatsApp 👍");
+  }
+}
+
+// Initial laden
+render();
+</script>
+
+</body>
+</html>
